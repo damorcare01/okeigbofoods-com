@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Star, ArrowRight, MapPin } from "lucide-react";
-import { Product } from "@/data/products";
+import { Product, PRODUCTS } from "@/data/products";
 import { useCart } from "@/context/CartContext";
 import { formatNGN } from "@/lib/format";
 import { toast } from "sonner";
@@ -57,7 +57,7 @@ export const ProductCard = ({ product }: { product: Product }) => {
 };
 
 export const Products = () => {
-  const featured = (require("@/data/products").PRODUCTS as Product[]).slice(0, 6);
+  const featured = PRODUCTS.slice(0, 6);
   return (
     <section id="shop" className="py-20 bg-background">
       <div className="container">
