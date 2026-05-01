@@ -30,7 +30,12 @@ const Signup = () => {
       return;
     }
     setLoading(true);
-    const res = signup(parsed.data);
+    const res = signup({
+      name: parsed.data.name,
+      email: parsed.data.email,
+      password: parsed.data.password,
+      phone: parsed.data.phone || undefined,
+    });
     setLoading(false);
     if (res.ok) {
       toast.success("Account created — welcome!");
