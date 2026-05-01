@@ -1,20 +1,34 @@
-import { ShoppingBasket, MapPin, User, Menu, Leaf } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { ShoppingBasket, MapPin, User, Menu, Leaf, LogOut, Search } from "lucide-react";
 import { useState } from "react";
-
-const links = [
-  { label: "Shop All", href: "#shop" },
-  { label: "Vegetables", href: "#categories", emoji: "🥬" },
-  { label: "Meat", href: "#categories", emoji: "🥩" },
-  { label: "Grains", href: "#categories", emoji: "🌾" },
-  { label: "Frozen", href: "#categories", emoji: "❄️" },
-  { label: "Dairy", href: "#categories", emoji: "🥛" },
-];
+import { useCart } from "@/context/CartContext";
+import { useAuth } from "@/context/AuthContext";
+import { CATEGORIES } from "@/data/products";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export const Header = () => {
   const [open, setOpen] = useState(false);
+  const [q, setQ] = useState("");
+  const { count, setOpen: setCartOpen } = useCart();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const onSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!q.trim()) return;
+    navigate(`/shop?q=${encodeURIComponent(q.trim())}`);
+  };
+
   return (
     <header className="sticky top-0 z-50">
-      {/* Promo strip */}
       <div className="bg-primary text-primary-foreground text-xs sm:text-sm">
         <div className="container flex items-center justify-center gap-3 py-2.5">
           <span className="inline-flex h-2 w-2 rounded-full bg-sun animate-pulse" />
@@ -25,57 +39,107 @@ export const Header = () => {
       </div>
 
       <div className="bg-background/85 backdrop-blur-md border-b border-border/60">
-        <div className="container flex items-center justify-between py-4">
-          <a href="#" className="flex items-center gap-2.5 group">
+        <div className="container flex items-center justify-between py-4 gap-4">
+          <Link to="/" className="flex items-center gap-2.5 group shrink-0">
             <span className="grid place-items-center w-10 h-10 rounded-2xl gradient-leaf text-primary-foreground shadow-organic group-hover:scale-105 transition-transform">
               <Leaf className="w-5 h-5" />
             </span>
             <span className="leading-tight">
               <span className="block font-display text-xl font-700 text-primary">OkeigboFoods</span>
-              <span className="block text-[10px] tracking-[0.22em] text-muted-foreground uppercase">
+              <span className="hidden sm:block text-[10px] tracking-[0.22em] text-muted-foreground uppercase">
                 Fresh · Pure · Nigerian
               </span>
             </span>
-          </a>
+          </Link>
 
-          <nav className="hidden lg:flex items-center gap-7">
-            {links.map((l) => (
-              <a key={l.label} href={l.href}
-                 className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors relative group">
-                {l.emoji && <span className="mr-1.5">{l.emoji}</span>}
-                {l.label}
-                <span className="absolute -bottom-1 left-0 h-0.5 w-0 bg-accent group-hover:w-full transition-all duration-300" />
-              </a>
+          <form onSubmit={onSearch} className="hidden md:flex flex-1 max-w-md relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Search yam, suya spice, halal beef..."
+              className="w-full h-11 pl-11 pr-4 rounded-full border border-border bg-card focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm"
+            />
+          </form>
+
+          <nav className="hidden xl:flex items-center gap-5">
+            <Link to="/shop" className="text-sm font-medium hover:text-primary">Shop All</Link>
+            {CATEGORIES.map((c) => (
+              <Link key={c.slug} to={`/shop/${c.slug}`} className="text-sm font-medium hover:text-primary">
+                <span className="mr-1">{c.emoji}</span>{c.title.split(" ")[0]}
+              </Link>
             ))}
           </nav>
 
-          <div className="flex items-center gap-3">
-            <button className="hidden md:flex items-center gap-1.5 text-sm font-medium text-foreground/80 hover:text-primary transition-colors">
-              <MapPin className="w-4 h-4" /> Track
-            </button>
-            <button className="hidden md:grid place-items-center w-9 h-9 rounded-full border border-border hover:border-primary transition-colors">
-              <User className="w-4 h-4" />
-            </button>
-            <button className="relative grid place-items-center w-11 h-11 rounded-full gradient-leaf text-primary-foreground shadow-organic hover:scale-105 transition-transform">
+          <div className="flex items-center gap-2 shrink-0">
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger className="hidden md:grid place-items-center w-10 h-10 rounded-full border border-border hover:border-primary">
+                  <User className="w-4 h-4" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56 bg-popover">
+                  <DropdownMenuLabel>
+                    <div className="font-display">{user.name}</div>
+                    <div className="text-xs text-muted-foreground font-normal">{user.email}</div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {user.role === "admin" && (
+                    <DropdownMenuItem onClick={() => navigate("/admin")}>
+                      Admin Dashboard
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem onClick={() => navigate("/account")}>My Orders</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => { logout(); navigate("/"); }}>
+                    <LogOut className="w-4 h-4 mr-2" /> Sign out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Link to="/login" className="hidden md:flex items-center gap-1.5 text-sm font-medium hover:text-primary">
+                <User className="w-4 h-4" /> Sign in
+              </Link>
+            )}
+
+            <button
+              onClick={() => setCartOpen(true)}
+              className="relative grid place-items-center w-11 h-11 rounded-full gradient-leaf text-primary-foreground shadow-organic hover:scale-105 transition-transform"
+              aria-label="Open basket"
+            >
               <ShoppingBasket className="w-5 h-5" />
-              <span className="absolute -top-1 -right-1 grid place-items-center min-w-[20px] h-5 px-1 rounded-full bg-accent text-accent-foreground text-[10px] font-bold">
-                3
-              </span>
+              {count > 0 && (
+                <span className="absolute -top-1 -right-1 grid place-items-center min-w-[20px] h-5 px-1 rounded-full bg-accent text-accent-foreground text-[10px] font-bold">
+                  {count}
+                </span>
+              )}
             </button>
-            <button onClick={() => setOpen(!open)} className="lg:hidden grid place-items-center w-10 h-10 rounded-full border border-border">
+            <button onClick={() => setOpen(!open)} className="xl:hidden grid place-items-center w-10 h-10 rounded-full border border-border">
               <Menu className="w-5 h-5" />
             </button>
           </div>
         </div>
 
+        {/* Mobile search */}
+        <form onSubmit={onSearch} className="md:hidden container pb-3 relative">
+          <Search className="absolute left-7 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Search products..."
+            className="w-full h-11 pl-11 pr-4 rounded-full border border-border bg-card text-sm"
+          />
+        </form>
+
         {open && (
-          <div className="lg:hidden border-t border-border bg-card">
+          <div className="xl:hidden border-t border-border bg-card">
             <div className="container py-4 flex flex-col gap-3">
-              {links.map((l) => (
-                <a key={l.label} href={l.href} className="text-sm font-medium py-1.5">
-                  {l.emoji && <span className="mr-2">{l.emoji}</span>}{l.label}
-                </a>
+              <Link to="/shop" onClick={() => setOpen(false)} className="text-sm font-medium py-1.5">Shop All</Link>
+              {CATEGORIES.map((c) => (
+                <Link key={c.slug} to={`/shop/${c.slug}`} onClick={() => setOpen(false)} className="text-sm font-medium py-1.5">
+                  <span className="mr-2">{c.emoji}</span>{c.title}
+                </Link>
               ))}
+              {!user && <Link to="/login" onClick={() => setOpen(false)} className="text-sm font-medium py-1.5">Sign in</Link>}
+              {user?.role === "admin" && <Link to="/admin" onClick={() => setOpen(false)} className="text-sm font-medium py-1.5 text-accent">Admin</Link>}
             </div>
           </div>
         )}

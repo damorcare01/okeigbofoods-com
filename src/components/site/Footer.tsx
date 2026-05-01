@@ -1,4 +1,6 @@
-import { Leaf, Instagram, Facebook, Twitter } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Leaf, Instagram, Facebook, Twitter, Lock } from "lucide-react";
+import { CATEGORIES } from "@/data/products";
 
 export const Footer = () => (
   <footer className="bg-primary text-primary-foreground">
@@ -29,20 +31,25 @@ export const Footer = () => (
       <div>
         <div className="font-display font-700 mb-4">Shop</div>
         <ul className="space-y-2 text-sm text-primary-foreground/75">
-          <li><a href="#" className="hover:text-sun">Fresh Vegetables</a></li>
-          <li><a href="#" className="hover:text-sun">Halal Meat</a></li>
-          <li><a href="#" className="hover:text-sun">Grains & Cereals</a></li>
-          <li><a href="#" className="hover:text-sun">Spices & Herbs</a></li>
+          {CATEGORIES.map((c) => (
+            <li key={c.slug}>
+              <Link to={`/shop/${c.slug}`} className="hover:text-sun">{c.title}</Link>
+            </li>
+          ))}
         </ul>
       </div>
 
       <div>
-        <div className="font-display font-700 mb-4">Company</div>
+        <div className="font-display font-700 mb-4">Account</div>
         <ul className="space-y-2 text-sm text-primary-foreground/75">
-          <li><a href="#" className="hover:text-sun">About Us</a></li>
-          <li><a href="#" className="hover:text-sun">Our Farmers</a></li>
-          <li><a href="#" className="hover:text-sun">Delivery</a></li>
-          <li><a href="#" className="hover:text-sun">Contact</a></li>
+          <li><Link to="/login" className="hover:text-sun">Sign in</Link></li>
+          <li><Link to="/signup" className="hover:text-sun">Create account</Link></li>
+          <li><Link to="/account" className="hover:text-sun">My orders</Link></li>
+          <li>
+            <Link to="/admin" className="hover:text-sun inline-flex items-center gap-1.5">
+              <Lock className="w-3 h-3" /> Admin
+            </Link>
+          </li>
         </ul>
       </div>
     </div>
