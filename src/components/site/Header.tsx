@@ -17,15 +17,40 @@ import {
 export const Header = () => {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
+  const [focused, setFocused] = useState(false);
+  const wrapRef = useRef<HTMLDivElement>(null);
   const { count, setOpen: setCartOpen } = useCart();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
+  const suggestions = useMemo(() => {
+    const term = q.trim().toLowerCase();
+    if (!term) return [];
+    return PRODUCTS.filter((p) =>
+      `${p.name} ${p.origin} ${p.tags.join(" ")} ${p.category}`.toLowerCase().includes(term)
+    ).slice(0, 6);
+  }, [q]);
+
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setFocused(false);
+    };
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, []);
+
   const onSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (!q.trim()) return;
+    setFocused(false);
     navigate(`/shop?q=${encodeURIComponent(q.trim())}`);
+  };
+
+  const goTo = (id: string) => {
+    setFocused(false);
+    setQ("");
+    navigate(`/product/${id}`);
   };
 
   return (
