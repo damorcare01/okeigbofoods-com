@@ -1,9 +1,10 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ShoppingBasket, MapPin, User, Menu, Leaf, LogOut, Search } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
-import { CATEGORIES } from "@/data/products";
+import { CATEGORIES, PRODUCTS } from "@/data/products";
+import { formatNGN } from "@/lib/format";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,15 +17,40 @@ import {
 export const Header = () => {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
+  const [focused, setFocused] = useState(false);
+  const wrapRef = useRef<HTMLDivElement>(null);
   const { count, setOpen: setCartOpen } = useCart();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
+  const suggestions = useMemo(() => {
+    const term = q.trim().toLowerCase();
+    if (!term) return [];
+    return PRODUCTS.filter((p) =>
+      `${p.name} ${p.origin} ${p.tags.join(" ")} ${p.category}`.toLowerCase().includes(term)
+    ).slice(0, 6);
+  }, [q]);
+
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setFocused(false);
+    };
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, []);
+
   const onSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (!q.trim()) return;
+    setFocused(false);
     navigate(`/shop?q=${encodeURIComponent(q.trim())}`);
+  };
+
+  const goTo = (id: string) => {
+    setFocused(false);
+    setQ("");
+    navigate(`/product/${id}`);
   };
 
   return (
@@ -52,15 +78,35 @@ export const Header = () => {
             </span>
           </Link>
 
-          <form onSubmit={onSearch} className="hidden md:flex flex-1 max-w-md relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Search yam, suya spice, halal beef..."
-              className="w-full h-11 pl-11 pr-4 rounded-full border border-border bg-card focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm"
-            />
-          </form>
+          <div ref={wrapRef} className="hidden md:block flex-1 max-w-md relative">
+            <form onSubmit={onSearch} className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <input
+                value={q}
+                onFocus={() => setFocused(true)}
+                onChange={(e) => { setQ(e.target.value); setFocused(true); }}
+                placeholder="Search yam, suya spice, halal beef..."
+                className="w-full h-11 pl-11 pr-4 rounded-full border border-border bg-card focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm"
+              />
+            </form>
+            {focused && suggestions.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-popover border border-border rounded-2xl shadow-lg overflow-hidden z-50">
+                {suggestions.map((p) => (
+                  <button key={p.id} type="button" onClick={() => goTo(p.id)} className="w-full flex items-center gap-3 p-3 hover:bg-muted text-left">
+                    <img src={p.img} alt={p.name} className="w-10 h-10 rounded-lg object-cover" />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-semibold truncate">{p.name}</div>
+                      <div className="text-xs text-muted-foreground">{p.category}</div>
+                    </div>
+                    <div className="text-sm font-display font-700 text-primary">{formatNGN(p.price)}</div>
+                  </button>
+                ))}
+                <button type="button" onClick={(e) => onSearch(e as any)} className="w-full p-3 text-xs font-semibold text-primary hover:bg-muted border-t border-border">
+                  See all results for "{q}" →
+                </button>
+              </div>
+            )}
+          </div>
 
           <nav className="hidden xl:flex items-center gap-5">
             <Link to="/shop" className="text-sm font-medium hover:text-primary">Shop All</Link>

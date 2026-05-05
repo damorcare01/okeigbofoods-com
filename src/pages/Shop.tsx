@@ -8,6 +8,8 @@ import { Search, SlidersHorizontal } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 
+type SortKey = "featured" | "price-asc" | "price-desc" | "rating" | "newest";
+
 const Shop = () => {
   const { category } = useParams<{ category?: string }>();
   const [params] = useSearchParams();
@@ -18,9 +20,10 @@ const Shop = () => {
   const [priceMax, setPriceMax] = useState(10000);
   const [organic, setOrganic] = useState(false);
   const [halal, setHalal] = useState(false);
+  const [sort, setSort] = useState<SortKey>("featured");
 
   const list = useMemo(() => {
-    return PRODUCTS.filter((p) => {
+    const filtered = PRODUCTS.filter((p) => {
       if (cat && p.category !== cat.slug) return false;
       if (q && !`${p.name} ${p.origin} ${p.description}`.toLowerCase().includes(q.toLowerCase())) return false;
       if (p.price > priceMax) return false;
@@ -28,7 +31,15 @@ const Shop = () => {
       if (halal && !p.halal) return false;
       return true;
     });
-  }, [cat, q, priceMax, organic, halal]);
+    const sorted = [...filtered];
+    switch (sort) {
+      case "price-asc": sorted.sort((a, b) => a.price - b.price); break;
+      case "price-desc": sorted.sort((a, b) => b.price - a.price); break;
+      case "rating": sorted.sort((a, b) => b.rating - a.rating); break;
+      case "newest": sorted.reverse(); break;
+    }
+    return sorted;
+  }, [cat, q, priceMax, organic, halal, sort]);
 
   const title = cat ? cat.title : "All Products";
   const emoji = cat ? cat.emoji : "🛒";
@@ -116,8 +127,24 @@ const Shop = () => {
           </aside>
 
           <div>
-            <div className="mb-5 text-sm text-muted-foreground">
-              Showing <strong className="text-foreground">{list.length}</strong> product{list.length !== 1 && "s"}
+            <div className="mb-5 flex items-center justify-between flex-wrap gap-3">
+              <div className="text-sm text-muted-foreground">
+                Showing <strong className="text-foreground">{list.length}</strong> product{list.length !== 1 && "s"}
+              </div>
+              <label className="flex items-center gap-2 text-sm">
+                <span className="text-muted-foreground">Sort by</span>
+                <select
+                  value={sort}
+                  onChange={(e) => setSort(e.target.value as SortKey)}
+                  className="h-9 rounded-full border border-border bg-card px-3 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/30"
+                >
+                  <option value="featured">Featured</option>
+                  <option value="newest">Newest</option>
+                  <option value="rating">Top rated</option>
+                  <option value="price-asc">Price: Low to High</option>
+                  <option value="price-desc">Price: High to Low</option>
+                </select>
+              </label>
             </div>
             {list.length === 0 ? (
               <div className="py-20 text-center text-muted-foreground">
