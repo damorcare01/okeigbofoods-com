@@ -8,6 +8,8 @@ import { Search, SlidersHorizontal } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 
+type SortKey = "featured" | "price-asc" | "price-desc" | "rating" | "newest";
+
 const Shop = () => {
   const { category } = useParams<{ category?: string }>();
   const [params] = useSearchParams();
@@ -18,9 +20,10 @@ const Shop = () => {
   const [priceMax, setPriceMax] = useState(10000);
   const [organic, setOrganic] = useState(false);
   const [halal, setHalal] = useState(false);
+  const [sort, setSort] = useState<SortKey>("featured");
 
   const list = useMemo(() => {
-    return PRODUCTS.filter((p) => {
+    const filtered = PRODUCTS.filter((p) => {
       if (cat && p.category !== cat.slug) return false;
       if (q && !`${p.name} ${p.origin} ${p.description}`.toLowerCase().includes(q.toLowerCase())) return false;
       if (p.price > priceMax) return false;
@@ -28,7 +31,15 @@ const Shop = () => {
       if (halal && !p.halal) return false;
       return true;
     });
-  }, [cat, q, priceMax, organic, halal]);
+    const sorted = [...filtered];
+    switch (sort) {
+      case "price-asc": sorted.sort((a, b) => a.price - b.price); break;
+      case "price-desc": sorted.sort((a, b) => b.price - a.price); break;
+      case "rating": sorted.sort((a, b) => b.rating - a.rating); break;
+      case "newest": sorted.reverse(); break;
+    }
+    return sorted;
+  }, [cat, q, priceMax, organic, halal, sort]);
 
   const title = cat ? cat.title : "All Products";
   const emoji = cat ? cat.emoji : "🛒";
