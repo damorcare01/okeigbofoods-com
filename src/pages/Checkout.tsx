@@ -88,12 +88,12 @@ const Checkout = () => {
 
   const tryApplyPromo = () => {
     const r = applyPromo(promoInput, subtotal, baseDelivery);
-    if (r.ok) {
+    if (r.ok === true) {
       setPromo(r.result);
       toast.success(`Applied ${r.result.code} — ${r.result.label}`);
-    } else {
-      toast.error(r.error);
+      return;
     }
+    toast.error(r.error);
   };
 
   const submit = (e: React.FormEvent) => {
