@@ -54,6 +54,9 @@ const OrderConfirmation = () => {
 
               <div className="border-t border-border pt-4 mt-4 space-y-1.5 text-sm">
                 <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>{formatNGN(order.subtotal)}</span></div>
+                {order.discount && order.discount > 0 ? (
+                  <div className="flex justify-between text-leaf"><span>Discount{order.promoCode ? ` (${order.promoCode})` : ""}</span><span>−{formatNGN(order.discount)}</span></div>
+                ) : null}
                 <div className="flex justify-between"><span className="text-muted-foreground">Delivery</span><span>{order.delivery === 0 ? "FREE" : formatNGN(order.delivery)}</span></div>
                 <div className="flex justify-between font-display font-700 text-lg pt-2 border-t border-border">
                   <span>Total</span><span className="text-primary">{formatNGN(order.total)}</span>
