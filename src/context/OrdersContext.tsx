@@ -19,6 +19,8 @@ export interface Order {
   address: Address;
   subtotal: number;
   delivery: number;
+  discount?: number;
+  promoCode?: string;
   total: number;
   paymentMethod: "pay-on-delivery" | "transfer";
   status: OrderStatus;

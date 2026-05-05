@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/context/AuthContext";
 import { CartProvider } from "@/context/CartContext";
 import { OrdersProvider } from "@/context/OrdersContext";
+import { AddressesProvider } from "@/context/AddressesContext";
 import { CartDrawer } from "@/components/site/CartDrawer";
 import Index from "./pages/Index.tsx";
 import Shop from "./pages/Shop.tsx";
@@ -27,6 +28,7 @@ const App = () => (
       <Sonner />
       <AuthProvider>
         <OrdersProvider>
+          <AddressesProvider>
           <CartProvider>
             <BrowserRouter>
               <CartDrawer />
