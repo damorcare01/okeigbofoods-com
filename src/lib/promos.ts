@@ -19,11 +19,15 @@ export const PROMOS: PromoDef[] = [
   { code: "FREESHIP", label: "Free delivery", type: "freeship", value: 0 },
 ];
 
+export type PromoApplyResult =
+  | { ok: true; result: PromoResult }
+  | { ok: false; error: string };
+
 export const applyPromo = (
   rawCode: string,
   subtotal: number,
   delivery: number,
-): { ok: true; result: PromoResult } | { ok: false; error: string } => {
+): PromoApplyResult => {
   const code = rawCode.trim().toUpperCase();
   if (!code) return { ok: false, error: "Enter a promo code" };
   const promo = PROMOS.find((p) => p.code === code);
