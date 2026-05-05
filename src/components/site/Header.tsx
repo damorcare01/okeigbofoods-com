@@ -78,15 +78,35 @@ export const Header = () => {
             </span>
           </Link>
 
-          <form onSubmit={onSearch} className="hidden md:flex flex-1 max-w-md relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Search yam, suya spice, halal beef..."
-              className="w-full h-11 pl-11 pr-4 rounded-full border border-border bg-card focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm"
-            />
-          </form>
+          <div ref={wrapRef} className="hidden md:block flex-1 max-w-md relative">
+            <form onSubmit={onSearch} className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <input
+                value={q}
+                onFocus={() => setFocused(true)}
+                onChange={(e) => { setQ(e.target.value); setFocused(true); }}
+                placeholder="Search yam, suya spice, halal beef..."
+                className="w-full h-11 pl-11 pr-4 rounded-full border border-border bg-card focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm"
+              />
+            </form>
+            {focused && suggestions.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-popover border border-border rounded-2xl shadow-lg overflow-hidden z-50">
+                {suggestions.map((p) => (
+                  <button key={p.id} type="button" onClick={() => goTo(p.id)} className="w-full flex items-center gap-3 p-3 hover:bg-muted text-left">
+                    <img src={p.img} alt={p.name} className="w-10 h-10 rounded-lg object-cover" />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-semibold truncate">{p.name}</div>
+                      <div className="text-xs text-muted-foreground">{p.category}</div>
+                    </div>
+                    <div className="text-sm font-display font-700 text-primary">{formatNGN(p.price)}</div>
+                  </button>
+                ))}
+                <button type="button" onClick={(e) => onSearch(e as any)} className="w-full p-3 text-xs font-semibold text-primary hover:bg-muted border-t border-border">
+                  See all results for "{q}" →
+                </button>
+              </div>
+            )}
+          </div>
 
           <nav className="hidden xl:flex items-center gap-5">
             <Link to="/shop" className="text-sm font-medium hover:text-primary">Shop All</Link>
