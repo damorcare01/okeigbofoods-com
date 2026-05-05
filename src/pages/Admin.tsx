@@ -18,6 +18,27 @@ const STATUSES: OrderStatus[] = ["pending", "confirmed", "out-for-delivery", "de
 const Admin = () => {
   const { user, users, setRole } = useAuth();
   const { orders, setStatus } = useOrders();
+  const [query, setQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<OrderStatus | "all">("all");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+
+  const filteredOrders = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return orders.filter((o) => {
+      if (statusFilter !== "all" && o.status !== statusFilter) return false;
+      if (q) {
+        const hay = `${o.id} ${o.address.fullName} ${o.address.phone} ${o.customerEmail}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      const created = new Date(o.createdAt).getTime();
+      if (fromDate && created < new Date(fromDate).getTime()) return false;
+      if (toDate && created > new Date(toDate).getTime() + 86400000 - 1) return false;
+      return true;
+    });
+  }, [orders, query, statusFilter, fromDate, toDate]);
+
+  const clearFilters = () => { setQuery(""); setStatusFilter("all"); setFromDate(""); setToDate(""); };
 
   if (!user) return <Navigate to="/login" replace />;
   if (user.role !== "admin") {
