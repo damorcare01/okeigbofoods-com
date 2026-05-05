@@ -90,9 +90,39 @@ const Admin = () => {
             <TabsTrigger value="users">Users</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="orders" className="mt-6">
-            {orders.length === 0 ? (
-              <div className="p-12 text-center text-muted-foreground bg-card rounded-2xl border border-border">No orders yet.</div>
+          <TabsContent value="orders" className="mt-6 space-y-4">
+            <div className="p-4 rounded-2xl border border-border bg-card grid md:grid-cols-[1fr_180px_160px_160px_auto] gap-3 items-end">
+              <div>
+                <Label className="text-xs">Search</Label>
+                <div className="relative mt-1">
+                  <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Order #, name, phone, email" className="pl-9" />
+                </div>
+              </div>
+              <div>
+                <Label className="text-xs">Status</Label>
+                <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as any)} className="mt-1 w-full h-10 rounded-md border border-input bg-background px-3 text-sm">
+                  <option value="all">All statuses</option>
+                  {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+              <div>
+                <Label className="text-xs">From</Label>
+                <Input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="mt-1" />
+              </div>
+              <div>
+                <Label className="text-xs">To</Label>
+                <Input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} className="mt-1" />
+              </div>
+              <Button type="button" variant="outline" onClick={clearFilters}>
+                <X className="w-4 h-4 mr-1" /> Clear
+              </Button>
+            </div>
+
+            <div className="text-xs text-muted-foreground">Showing {filteredOrders.length} of {orders.length} orders</div>
+
+            {filteredOrders.length === 0 ? (
+              <div className="p-12 text-center text-muted-foreground bg-card rounded-2xl border border-border">No orders match your filters.</div>
             ) : (
               <div className="overflow-x-auto rounded-2xl border border-border bg-card">
                 <table className="w-full text-sm">
@@ -107,11 +137,12 @@ const Admin = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {orders.map((o) => (
+                    {filteredOrders.map((o) => (
                       <tr key={o.id} className="border-t border-border">
                         <td className="p-3 font-mono text-xs">{o.id}</td>
                         <td className="p-3">
                           <div className="font-medium">{o.address.fullName}</div>
+                          <div className="text-xs text-muted-foreground">{o.address.phone}</div>
                           <div className="text-xs text-muted-foreground">{o.customerEmail}</div>
                         </td>
                         <td className="p-3">{o.items.length}</td>
