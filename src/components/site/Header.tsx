@@ -1,9 +1,10 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ShoppingBasket, MapPin, User, Menu, Leaf, LogOut, Search } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
-import { CATEGORIES } from "@/data/products";
+import { CATEGORIES, PRODUCTS } from "@/data/products";
+import { formatNGN } from "@/lib/format";
 import {
   DropdownMenu,
   DropdownMenuContent,
