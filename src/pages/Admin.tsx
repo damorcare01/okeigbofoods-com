@@ -1,3 +1,4 @@
+import { useMemo, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
@@ -5,8 +6,11 @@ import { useAuth } from "@/context/AuthContext";
 import { useOrders, OrderStatus } from "@/context/OrdersContext";
 import { PRODUCTS } from "@/data/products";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { formatNGN } from "@/lib/format";
-import { Package, Users, ShoppingBag, ShieldCheck, ShieldOff } from "lucide-react";
+import { Package, Users, ShoppingBag, ShieldCheck, ShieldOff, Search, X } from "lucide-react";
 import { toast } from "sonner";
 
 const STATUSES: OrderStatus[] = ["pending", "confirmed", "out-for-delivery", "delivered", "cancelled"];
