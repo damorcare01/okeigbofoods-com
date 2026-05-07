@@ -121,7 +121,7 @@ const Admin = () => {
               </div>
               <div>
                 <Label className="text-xs">Status</Label>
-                <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as any)} className="mt-1 w-full h-10 rounded-md border border-input bg-background px-3 text-sm">
+                <select value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value as any); setPage(1); }} className="mt-1 w-full h-10 rounded-md border border-input bg-background px-3 text-sm">
                   <option value="all">All statuses</option>
                   {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
                 </select>
