@@ -11,6 +11,12 @@ export interface Address {
   state: string;
 }
 
+export interface TrackingUpdate {
+  at: string;
+  status: OrderStatus;
+  note?: string;
+}
+
 export interface Order {
   id: string;
   userId: string | null;
@@ -25,12 +31,14 @@ export interface Order {
   paymentMethod: "pay-on-delivery" | "transfer";
   status: OrderStatus;
   createdAt: string;
+  tracking?: TrackingUpdate[];
 }
 
 interface OrdersContextValue {
   orders: Order[];
-  place: (o: Omit<Order, "id" | "createdAt" | "status">) => Order;
-  setStatus: (id: string, status: OrderStatus) => void;
+  place: (o: Omit<Order, "id" | "createdAt" | "status" | "tracking">) => Order;
+  setStatus: (id: string, status: OrderStatus, note?: string) => void;
+  addTrackingNote: (id: string, note: string) => void;
 }
 
 const OrdersContext = createContext<OrdersContextValue | null>(null);
