@@ -3,17 +3,20 @@ import { Navigate } from "react-router-dom";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
 import { useAuth } from "@/context/AuthContext";
-import { useOrders, OrderStatus } from "@/context/OrdersContext";
+import { useOrders, OrderStatus, Order } from "@/context/OrdersContext";
 import { PRODUCTS } from "@/data/products";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { formatNGN } from "@/lib/format";
-import { Package, Users, ShoppingBag, ShieldCheck, ShieldOff, Search, X } from "lucide-react";
+import { Package, Users, ShoppingBag, ShieldCheck, ShieldOff, Search, X, MessageSquarePlus, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 
 const STATUSES: OrderStatus[] = ["pending", "confirmed", "out-for-delivery", "delivered", "cancelled"];
+const PAGE_SIZE = 10;
 
 const Admin = () => {
   const { user, users, setRole } = useAuth();
