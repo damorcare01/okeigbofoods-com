@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { formatNGN } from "@/lib/format";
 import { Package, Users, ShoppingBag, ShieldCheck, ShieldOff, Search, X, MessageSquarePlus, ChevronLeft, ChevronRight } from "lucide-react";
@@ -28,6 +29,22 @@ const Admin = () => {
   const [page, setPage] = useState(1);
   const [trackingFor, setTrackingFor] = useState<Order | null>(null);
   const [trackingNote, setTrackingNote] = useState("");
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkStatus, setBulkStatus] = useState<OrderStatus>("confirmed");
+
+  const toggleSelect = (id: string) =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+
+  const applyBulkStatus = () => {
+    if (selected.size === 0) return;
+    selected.forEach((id) => setStatus(id, bulkStatus, `Bulk update → ${bulkStatus}`));
+    toast.success(`Updated ${selected.size} order${selected.size !== 1 ? "s" : ""} to ${bulkStatus}`);
+    setSelected(new Set());
+  };
 
   const filteredOrders = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -145,6 +162,21 @@ const Admin = () => {
                 : `Showing ${startIdx}–${endIdx} of ${filteredOrders.length} (filtered from ${orders.length})`}
             </div>
 
+            {selected.size > 0 && (
+              <div className="p-3 rounded-2xl border border-primary/40 bg-primary/5 flex items-center gap-3 flex-wrap">
+                <span className="text-sm font-semibold">{selected.size} selected</span>
+                <select
+                  value={bulkStatus}
+                  onChange={(e) => setBulkStatus(e.target.value as OrderStatus)}
+                  className="h-9 rounded-md border border-input bg-background px-2 text-sm"
+                >
+                  {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                </select>
+                <Button size="sm" onClick={applyBulkStatus}>Apply to selected</Button>
+                <Button size="sm" variant="ghost" onClick={() => setSelected(new Set())}>Clear selection</Button>
+              </div>
+            )}
+
             {filteredOrders.length === 0 ? (
               <div className="p-12 text-center text-muted-foreground bg-card rounded-2xl border border-border">No orders match your filters.</div>
             ) : (
@@ -153,6 +185,19 @@ const Admin = () => {
                   <table className="w-full text-sm">
                     <thead className="bg-muted text-left">
                       <tr>
+                        <th className="p-3 w-10">
+                          <Checkbox
+                            checked={pagedOrders.length > 0 && pagedOrders.every((o) => selected.has(o.id))}
+                            onCheckedChange={(v) => {
+                              setSelected((prev) => {
+                                const next = new Set(prev);
+                                if (v) pagedOrders.forEach((o) => next.add(o.id));
+                                else pagedOrders.forEach((o) => next.delete(o.id));
+                                return next;
+                              });
+                            }}
+                          />
+                        </th>
                         <th className="p-3">Order</th>
                         <th className="p-3">Customer</th>
                         <th className="p-3">Items</th>
@@ -165,6 +210,9 @@ const Admin = () => {
                     <tbody>
                       {pagedOrders.map((o) => (
                         <tr key={o.id} className="border-t border-border">
+                          <td className="p-3">
+                            <Checkbox checked={selected.has(o.id)} onCheckedChange={() => toggleSelect(o.id)} />
+                          </td>
                           <td className="p-3 font-mono text-xs">{o.id}</td>
                           <td className="p-3">
                             <div className="font-medium">{o.address.fullName}</div>
