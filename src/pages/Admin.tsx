@@ -116,7 +116,7 @@ const Admin = () => {
                 <Label className="text-xs">Search</Label>
                 <div className="relative mt-1">
                   <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                  <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Order #, name, phone, email" className="pl-9" />
+                  <Input value={query} onChange={(e) => { setQuery(e.target.value); setPage(1); }} placeholder="Order #, name, phone, email" className="pl-9" />
                 </div>
               </div>
               <div>
