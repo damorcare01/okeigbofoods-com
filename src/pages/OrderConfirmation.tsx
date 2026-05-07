@@ -2,9 +2,51 @@ import { Link, useParams } from "react-router-dom";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
 import { useOrders } from "@/context/OrdersContext";
-import { CheckCircle2, Package, Mail, Phone } from "lucide-react";
+import { CheckCircle2, Package, Mail, Phone, Download, Printer } from "lucide-react";
 import { formatNGN } from "@/lib/format";
 import { OrderTracker } from "@/components/site/OrderTracker";
+import { Button } from "@/components/ui/button";
+
+const downloadReceipt = (order: any) => {
+  const lines = [
+    "OKEIGBOFOODS — ORDER RECEIPT",
+    "================================",
+    `Order:   #${order.id}`,
+    `Date:    ${new Date(order.createdAt).toLocaleString()}`,
+    `Status:  ${order.status}`,
+    `Email:   ${order.customerEmail}`,
+    "",
+    "DELIVER TO",
+    "--------------------------------",
+    `${order.address.fullName}`,
+    `${order.address.phone}`,
+    `${order.address.street}`,
+    `${order.address.city}, ${order.address.state}`,
+    "",
+    "ITEMS",
+    "--------------------------------",
+    ...order.items.map((it: any) =>
+      `${it.qty} × ${it.product.name}  —  ₦${(it.qty * it.product.price).toLocaleString()}`,
+    ),
+    "",
+    "SUMMARY",
+    "--------------------------------",
+    `Subtotal:  ₦${order.subtotal.toLocaleString()}`,
+    ...(order.discount ? [`Promo ${order.promoCode ? `(${order.promoCode})` : ""}: -₦${order.discount.toLocaleString()}`] : []),
+    `Delivery:  ${order.delivery === 0 ? "FREE" : "₦" + order.delivery.toLocaleString()}`,
+    `Payment:   ${order.paymentMethod}`,
+    `TOTAL:     ₦${order.total.toLocaleString()}`,
+    "",
+    "Thank you for shopping with OkeigboFoods!",
+  ].join("\n");
+  const blob = new Blob([lines], { type: "text/plain" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `okeigbofoods-receipt-${order.id}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+};
 
 const OrderConfirmation = () => {
   const { id } = useParams<{ id: string }>();
