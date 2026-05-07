@@ -28,6 +28,22 @@ const Admin = () => {
   const [page, setPage] = useState(1);
   const [trackingFor, setTrackingFor] = useState<Order | null>(null);
   const [trackingNote, setTrackingNote] = useState("");
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkStatus, setBulkStatus] = useState<OrderStatus>("confirmed");
+
+  const toggleSelect = (id: string) =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+
+  const applyBulkStatus = () => {
+    if (selected.size === 0) return;
+    selected.forEach((id) => setStatus(id, bulkStatus, `Bulk update → ${bulkStatus}`));
+    toast.success(`Updated ${selected.size} order${selected.size !== 1 ? "s" : ""} to ${bulkStatus}`);
+    setSelected(new Set());
+  };
 
   const filteredOrders = useMemo(() => {
     const q = query.trim().toLowerCase();
