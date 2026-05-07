@@ -20,11 +20,14 @@ const PAGE_SIZE = 10;
 
 const Admin = () => {
   const { user, users, setRole } = useAuth();
-  const { orders, setStatus } = useOrders();
+  const { orders, setStatus, addTrackingNote } = useOrders();
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<OrderStatus | "all">("all");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
+  const [page, setPage] = useState(1);
+  const [trackingFor, setTrackingFor] = useState<Order | null>(null);
+  const [trackingNote, setTrackingNote] = useState("");
 
   const filteredOrders = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -41,7 +44,21 @@ const Admin = () => {
     });
   }, [orders, query, statusFilter, fromDate, toDate]);
 
-  const clearFilters = () => { setQuery(""); setStatusFilter("all"); setFromDate(""); setToDate(""); };
+  const totalPages = Math.max(1, Math.ceil(filteredOrders.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pagedOrders = filteredOrders.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const startIdx = filteredOrders.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
+  const endIdx = Math.min(currentPage * PAGE_SIZE, filteredOrders.length);
+
+  const clearFilters = () => { setQuery(""); setStatusFilter("all"); setFromDate(""); setToDate(""); setPage(1); };
+
+  const submitTrackingNote = () => {
+    if (!trackingFor || !trackingNote.trim()) return;
+    addTrackingNote(trackingFor.id, trackingNote.trim());
+    toast.success("Tracking note added");
+    setTrackingNote("");
+    setTrackingFor(null);
+  };
 
   if (!user) return <Navigate to="/login" replace />;
   if (user.role !== "admin") {
