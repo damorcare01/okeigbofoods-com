@@ -139,50 +139,121 @@ const Admin = () => {
               </Button>
             </div>
 
-            <div className="text-xs text-muted-foreground">Showing {filteredOrders.length} of {orders.length} orders</div>
+            <div className="text-xs text-muted-foreground">
+              {filteredOrders.length === 0
+                ? `0 of ${orders.length} orders`
+                : `Showing ${startIdx}–${endIdx} of ${filteredOrders.length} (filtered from ${orders.length})`}
+            </div>
 
             {filteredOrders.length === 0 ? (
               <div className="p-12 text-center text-muted-foreground bg-card rounded-2xl border border-border">No orders match your filters.</div>
             ) : (
-              <div className="overflow-x-auto rounded-2xl border border-border bg-card">
-                <table className="w-full text-sm">
-                  <thead className="bg-muted text-left">
-                    <tr>
-                      <th className="p-3">Order</th>
-                      <th className="p-3">Customer</th>
-                      <th className="p-3">Items</th>
-                      <th className="p-3">Total</th>
-                      <th className="p-3">Date</th>
-                      <th className="p-3">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredOrders.map((o) => (
-                      <tr key={o.id} className="border-t border-border">
-                        <td className="p-3 font-mono text-xs">{o.id}</td>
-                        <td className="p-3">
-                          <div className="font-medium">{o.address.fullName}</div>
-                          <div className="text-xs text-muted-foreground">{o.address.phone}</div>
-                          <div className="text-xs text-muted-foreground">{o.customerEmail}</div>
-                        </td>
-                        <td className="p-3">{o.items.length}</td>
-                        <td className="p-3 font-semibold">{formatNGN(o.total)}</td>
-                        <td className="p-3 text-xs text-muted-foreground">{new Date(o.createdAt).toLocaleDateString()}</td>
-                        <td className="p-3">
-                          <select
-                            value={o.status}
-                            onChange={(e) => { setStatus(o.id, e.target.value as OrderStatus); toast.success(`Order ${o.id} → ${e.target.value}`); }}
-                            className="h-8 rounded-md border border-border bg-background px-2 text-xs"
-                          >
-                            {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-                          </select>
-                        </td>
+              <>
+                <div className="overflow-x-auto rounded-2xl border border-border bg-card">
+                  <table className="w-full text-sm">
+                    <thead className="bg-muted text-left">
+                      <tr>
+                        <th className="p-3">Order</th>
+                        <th className="p-3">Customer</th>
+                        <th className="p-3">Items</th>
+                        <th className="p-3">Total</th>
+                        <th className="p-3">Date</th>
+                        <th className="p-3">Status</th>
+                        <th className="p-3">Actions</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {pagedOrders.map((o) => (
+                        <tr key={o.id} className="border-t border-border">
+                          <td className="p-3 font-mono text-xs">{o.id}</td>
+                          <td className="p-3">
+                            <div className="font-medium">{o.address.fullName}</div>
+                            <div className="text-xs text-muted-foreground">{o.address.phone}</div>
+                            <div className="text-xs text-muted-foreground">{o.customerEmail}</div>
+                          </td>
+                          <td className="p-3">{o.items.length}</td>
+                          <td className="p-3 font-semibold">{formatNGN(o.total)}</td>
+                          <td className="p-3 text-xs text-muted-foreground">{new Date(o.createdAt).toLocaleDateString()}</td>
+                          <td className="p-3">
+                            <select
+                              value={o.status}
+                              onChange={(e) => { setStatus(o.id, e.target.value as OrderStatus, `Status changed to ${e.target.value}`); toast.success(`Order ${o.id} → ${e.target.value}`); }}
+                              className="h-8 rounded-md border border-border bg-background px-2 text-xs"
+                            >
+                              {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                            </select>
+                          </td>
+                          <td className="p-3">
+                            <div className="flex flex-wrap gap-1">
+                              {o.status === "pending" && (
+                                <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => { setStatus(o.id, "confirmed", "Order confirmed"); toast.success("Confirmed"); }}>Confirm</Button>
+                              )}
+                              {o.status === "confirmed" && (
+                                <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => { setStatus(o.id, "out-for-delivery", "Dispatched to rider"); toast.success("Out for delivery"); }}>Dispatch</Button>
+                              )}
+                              {o.status === "out-for-delivery" && (
+                                <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => { setStatus(o.id, "delivered", "Delivered to customer"); toast.success("Delivered"); }}>Mark delivered</Button>
+                              )}
+                              <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setTrackingFor(o)}>
+                                <MessageSquarePlus className="w-3.5 h-3.5 mr-1" /> Note
+                              </Button>
+                            </div>
+                            {o.tracking && o.tracking.length > 0 && (
+                              <div className="text-[10px] text-muted-foreground mt-1 max-w-[220px] truncate">
+                                Last: {o.tracking[o.tracking.length - 1].note ?? o.tracking[o.tracking.length - 1].status}
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <div className="text-xs text-muted-foreground">Page {currentPage} of {totalPages}</div>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={currentPage <= 1}>
+                      <ChevronLeft className="w-4 h-4 mr-1" /> Prev
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage >= totalPages}>
+                      Next <ChevronRight className="w-4 h-4 ml-1" />
+                    </Button>
+                  </div>
+                </div>
+              </>
             )}
+
+            <Dialog open={!!trackingFor} onOpenChange={(o) => !o && setTrackingFor(null)}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Tracking note · {trackingFor?.id}</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-3">
+                  <Textarea
+                    placeholder="e.g. Rider arrived in Lekki, calling customer now"
+                    value={trackingNote}
+                    onChange={(e) => setTrackingNote(e.target.value)}
+                    rows={4}
+                  />
+                  {trackingFor?.tracking && trackingFor.tracking.length > 0 && (
+                    <div className="rounded-xl bg-muted p-3 max-h-40 overflow-auto text-xs space-y-1">
+                      {[...trackingFor.tracking].reverse().map((t, i) => (
+                        <div key={i}>
+                          <span className="font-semibold">{t.status}</span>
+                          {t.note && <> · {t.note}</>}
+                          <span className="text-muted-foreground"> · {new Date(t.at).toLocaleString()}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setTrackingFor(null)}>Cancel</Button>
+                  <Button onClick={submitTrackingNote} disabled={!trackingNote.trim()}>Save note</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </TabsContent>
 
           <TabsContent value="products" className="mt-6">
