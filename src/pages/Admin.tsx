@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { formatNGN } from "@/lib/format";
 import { Package, Users, ShoppingBag, ShieldCheck, ShieldOff, Search, X, MessageSquarePlus, ChevronLeft, ChevronRight } from "lucide-react";
