@@ -130,7 +130,17 @@ const OrderConfirmation = () => {
           </>
         )}
 
-        <div className="mt-8 flex gap-3 justify-center">
+        <div className="mt-8 flex gap-3 justify-center flex-wrap print:hidden">
+          {order && (
+            <>
+              <Button variant="outline" onClick={() => downloadReceipt(order)} className="rounded-full">
+                <Download className="w-4 h-4 mr-1" /> Download receipt
+              </Button>
+              <Button variant="outline" onClick={() => window.print()} className="rounded-full">
+                <Printer className="w-4 h-4 mr-1" /> Print
+              </Button>
+            </>
+          )}
           <Link to="/shop" className="px-6 py-3 rounded-full border border-primary text-primary font-semibold hover:bg-primary hover:text-primary-foreground">
             Continue shopping
           </Link>
