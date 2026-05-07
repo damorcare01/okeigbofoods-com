@@ -58,20 +58,37 @@ export const OrdersProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const place: OrdersContextValue["place"] = (o) => {
+    const now = new Date().toISOString();
     const order: Order = {
       ...o,
       id: "OK-" + Math.random().toString(36).slice(2, 8).toUpperCase(),
-      createdAt: new Date().toISOString(),
+      createdAt: now,
       status: "pending",
+      tracking: [{ at: now, status: "pending", note: "Order received" }],
     };
     persist([order, ...orders]);
     return order;
   };
 
-  const setStatus = (id: string, status: OrderStatus) =>
-    persist(orders.map((o) => (o.id === id ? { ...o, status } : o)));
+  const setStatus = (id: string, status: OrderStatus, note?: string) =>
+    persist(
+      orders.map((o) =>
+        o.id === id
+          ? { ...o, status, tracking: [...(o.tracking ?? []), { at: new Date().toISOString(), status, note }] }
+          : o,
+      ),
+    );
 
-  return <OrdersContext.Provider value={{ orders, place, setStatus }}>{children}</OrdersContext.Provider>;
+  const addTrackingNote = (id: string, note: string) =>
+    persist(
+      orders.map((o) =>
+        o.id === id
+          ? { ...o, tracking: [...(o.tracking ?? []), { at: new Date().toISOString(), status: o.status, note }] }
+          : o,
+      ),
+    );
+
+  return <OrdersContext.Provider value={{ orders, place, setStatus, addTrackingNote }}>{children}</OrdersContext.Provider>;
 };
 
 export const useOrders = () => {
